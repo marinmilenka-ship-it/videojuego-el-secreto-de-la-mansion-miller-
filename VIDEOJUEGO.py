@@ -99,6 +99,17 @@ class Jugador(FirstPersonController):
         self.jump_height = 2               
         self.jump_up_duration = 0.4    
         self.gravity = 1               
+        self.audio_pasos = Audio('pasos.mp3', autoplay=False, loop=True, volume=1)
+
+    def update(self):
+        super().update()
+        moviendose = held_keys['w'] or held_keys['a'] or held_keys['s'] or held_keys['d']
+        if moviendose and self.grounded:
+            if not self.audio_pasos.playing:
+                self.audio_pasos.play()
+        else:
+            if self.audio_pasos.playing:
+                self.audio_pasos.stop()
 
     def input(self, key):
         if key == 'escape': application.quit()
@@ -131,7 +142,7 @@ class Introduccion:
         self.pantalla = Entity(parent=camera.ui, model='quad', color=color.black, scale=(2, 2), z=2, enabled=False)
         mensaje = "Oficial, necesitamos que investigue\nla mansión Miller\npor casos de personas desaparecidas."
         self.texto = Text(text=mensaje, position=(0, 0), origin=(0, 0), scale=2, color=color.white, alpha=0, z=1)
-        self.audio_voz = Audio('voz_intro.mp3', autoplay=False, loop=False)
+        self.audio_voz = Audio('voz_intro.mp3', autoplay=True, loop=False)
 
     def iniciar(self):
         self.pantalla.enabled = True
@@ -152,6 +163,7 @@ class Introduccion:
         self.pantalla.fade_out(duration=3.5)
         self.jugador.enable()
         self.jugador.ui.activar()
+        musica_fondo.play()
 
 class Menu:
     def __init__(self, intro_ref):
@@ -182,7 +194,8 @@ def update():
             cronometro_texto.color = color.red
             game_over_activo = True
             protagonista.disable()  
-            mouse.locked = False    
+            mouse.locked = False
+            musica_fondo.stop()    
             mouse.visible = True
             fondo_game_over.enabled = True
             texto_game_over.enabled = True
@@ -206,11 +219,13 @@ def click_si():
     mouse.locked = True
     mouse.visible = False
     game_over_activo = False
+    musica_fondo.play()
 
 def click_no():
     boton_si.enabled = False
     boton_no.enabled = False
     texto_game_over.text = "Juego Finalizado"
+    application.quit()
 
 boton_si = Button(parent=camera.ui, text="SÍ", scale=(0.2, 0.08), position=(-0.15, -0.1), color=color.black, z=-0.3, enabled=False)
 boton_no = Button(parent=camera.ui, text="NO", scale=(0.2, 0.08), position=(0.15, -0.1), color=color.black, z=-0.3, enabled=False)
@@ -225,4 +240,5 @@ mano = Entity(model="protagonista.obj", texture='textura_policia.png',parent=cam
 mano.disable_shadows=True
 intro = Introduccion(protagonista)
 menu=Menu(intro)
+musica_fondo = Audio('musica_juego.mp3', autoplay=False, loop=True, volume=0.4)
 app.run() 
